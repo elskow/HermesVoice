@@ -1,0 +1,59 @@
+name: firmware
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  host-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and run host tests (no hardware)
+        run: make -C firmware/tests/host run
+
+  idf-build:
+    runs-on: ubuntu-latest
+    container: espressif/idf:v6.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build firmware (ESP32)
+        run: |
+          . /opt/esp/idf/export.sh
+          idf.py -C firmware set-target esp32
+          idf.py -C firmware build
+      - name: Check binary fits partition
+        run: |
+          . /opt/esp/idf/export.sh
+          python $IDF_PATH/components/partition_table/check_sizes.py \
+            --offset 0x8000 partition --type app \
+            firmware/build/partition_table/partition-table.bin \
+            firmware/build/voice-node.bin
+  relay-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+      - name: Vet and build relay
+        run: |
+          cd relay
+          go vet ./...
+          go build ./...
+
+  qemu-boot:
+    runs-on: ubuntu-latest
+    container: espressif/idf:v6.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install QEMU + pytest deps
+        run: |
+          . /opt/esp/idf/export.sh
+          python $IDF_PATH/tools/idf_tools.py install qemu-xtensa
+          pip install pytest-embedded-qemu pytest-embedded-idf
+      - name: QEMU boot to ready (no panic, heap guard fires)
+        run: |
+          . /opt/esp/idf/export.sh
+          export PATH="$IDF_TOOLS_PATH/tools/qemu-xtensa/*/qemu/bin:$PATH"
+          make test-qemu

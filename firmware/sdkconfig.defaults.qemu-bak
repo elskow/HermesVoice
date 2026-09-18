@@ -1,0 +1,4 @@
+# QEMU/offline bench: no radio, host services via user-net gateway.
+CONFIG_NODE_WIFI_ENABLED=n
+CONFIG_NODE_GATEWAY_URL="http://10.0.2.2:8081"
+CONFIG_NODE_MQTT_URI="mqtt://10.0.2.2:1883"

@@ -1,0 +1,26 @@
+# fp-iot monorepo ignores
+.env
+.DS_Store
+firmware/build/
+firmware/build-linux/
+build-qemu/
+build/
+firmware/sdkconfig
+firmware/sdkconfig.old
+firmware/tests/host/test_all
+firmware/tests/host/test_all.dSYM/
+relay/hermes-voice
+relay/.env
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/extensions.json
+!.vscode/README_IDF.md
+!.vscode/c_cpp_properties.json
+!.vscode/launch.json
+__pycache__/
+*.bin
+*.elf
+*.map
+firmware/.cache/

@@ -1,0 +1,4 @@
+.env
+hermes-voice
+tmp/
+build-errors.log

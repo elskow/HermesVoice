@@ -1,0 +1,58 @@
+package fwui
+
+import "hermes-voice/internal/firmware"
+
+// Page body: current manifest (or empty state) + publish form. Uploads
+// post multipart to /firmware/publish; the store hashes + rewrites the
+// manifest atomically. Devices allowlist is comma-separated, empty = fleet.
+templ page(m firmware.Manifest, have bool, msg string) {
+	<h1>Firmware</h1>
+	if msg != "" {
+		<p class={ "msg", msgClass(msg) }>{ msg }</p>
+	}
+	if have {
+		<div class="tile">
+			<strong>{ m.Version }</strong> · <code>{ m.URL }</code><br/>
+			<span class="hint">sha256 { m.SHA256 }</span>
+			<span class="hint">{ scopeLine(m) }</span>
+		</div>
+	} else {
+		<p>No firmware published yet. Upload a <code>voice-node.bin</code> below.</p>
+	}
+	<form method="POST" action="/firmware/publish" enctype="multipart/form-data">
+		<fieldset class="tile">
+			<legend>Publish new image</legend>
+			<label>
+				<span class="lbl">Version (e.g. 1.2.3, becomes voice-node-&lt;v&gt;.bin)</span>
+				<input type="text" name="version" placeholder="1.2.3"/>
+			</label>
+			<label>
+				<span class="lbl">Devices allowlist, comma-separated (empty = whole fleet)</span>
+				<input type="text" name="devices" placeholder="node-01,node-02"/>
+			</label>
+			<label>
+				<span class="lbl">Image (.bin, max 4 MB)</span>
+				<input type="file" name="image" accept=".bin"/>
+			</label>
+		</fieldset>
+		<p><button type="submit">Publish</button></p>
+	</form>
+}
+
+func scopeLine(m firmware.Manifest) string {
+	if len(m.Devices) == 0 {
+		return "fleet-wide rollout"
+	}
+	out := "staged to:"
+	for _, d := range m.Devices {
+		out += " " + d
+	}
+	return out
+}
+
+func msgClass(msg string) string {
+	if len(msg) >= 9 && msg[:9] == "published" {
+		return "ok"
+	}
+	return "err"
+}

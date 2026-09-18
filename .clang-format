@@ -1,0 +1,23 @@
+# IDF style: 4-space indent, 120-col, own-header-first include order.
+BasedOnStyle: LLVM
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ColumnLimit: 120
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+BreakBeforeBraces: Linux
+IncludeCategories:
+  - Regex: '^"app_main\.h"$'
+    Priority: 1
+  - Regex: '^<'
+    Priority: 2
+  - Regex: '^"(esp_|driver/|freertos/|mqtt_client|nvs)'
+    Priority: 3
+  - Regex: '^"node_'
+    Priority: 4
+  - Regex: '.*'
+    Priority: 5
+SortIncludes: CaseSensitive
+DerivePointerAlignment: false
+PointerAlignment: Left

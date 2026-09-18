@@ -1,0 +1,44 @@
+package web
+
+import "time"
+
+type HomeData struct {
+	StartedAt time.Time
+	Uptime    time.Duration
+	Total     int
+	OK        int
+}
+
+templ HomeBody(d HomeData) {
+	<h1>Hermes Voice</h1>
+	<p class="lede">Local admin for Hermes Voice. Configure providers, watch turns.</p>
+	<div class="tile">up since { d.StartedAt.Format("2006-01-02 15:04:05") } ({ FmtDur(d.Uptime) }) · { okLine(d) }</div>
+	<div class="cards">
+		<a class="card" href="/setup">
+			<strong>Setup</strong>
+			<span>Edit relay.env, test each provider inline.</span>
+		</a>
+		<a class="card" href="/status">
+			<strong>Status</strong>
+			<span>Verdict counters and recent turns.</span>
+		</a>
+		<a class="card" href="/firmware">
+			<strong>Firmware</strong>
+			<span>Publish images, staged rollout per device.</span>
+		</a>
+	</div>
+}
+
+func okLine(d HomeData) string {
+	if d.Total == 0 {
+		return "no turns yet"
+	}
+	return FmtInt(d.OK) + " ok of " + FmtInt(d.Total) + " turns"
+}
+
+templ NotFoundBody(path string) {
+	<div class="e404">404</div>
+	<h1>Page not found</h1>
+	<p>No admin page at <code>{ path }</code>.</p>
+	<p><a href="/">Back home</a></p>
+}

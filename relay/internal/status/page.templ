@@ -1,0 +1,102 @@
+package status
+
+import (
+	"fmt"
+	"time"
+)
+
+// Status page body: uptime, per-verdict counters, last turns newest-first.
+// Auto-refresh keeps it a glanceable dashboard with no JS framework.
+// The shared shell (head/style/nav) lives in web.Layout.
+templ page(snap Snapshot) {
+	<h1>Status</h1>
+	<div class="tile">up since { snap.StartedAt.Format("2006-01-02 15:04:05") } ({ fmtDur(snap.Uptime) })</div>
+	<h2>Verdicts</h2>
+	if len(snap.Verdicts) == 0 {
+		<p>No turns yet.</p>
+	} else {
+		<table>
+			<thead><tr><th>verdict</th><th>count</th></tr></thead>
+			<tbody>
+				for _, row := range verdictRows(snap.Verdicts) {
+					<tr><td><span class={ "tag", tagClass(row.Name) }>{ row.Name }</span></td><td>{ fmt.Sprint(row.Count) }</td></tr>
+				}
+			</tbody>
+		</table>
+	}
+	<h2>Recent turns (last { fmt.Sprint(len(snap.Recent)) } of { fmt.Sprint(snap.Cap) })</h2>
+	if len(snap.Recent) == 0 {
+		<p>No turns yet. Press PTT on a device.</p>
+	} else {
+		<table>
+			<thead><tr><th>time</th><th>device</th><th>verdict</th><th>transcript</th><th>reply</th><th>stt/lat</th></tr></thead>
+			<tbody>
+				for _, t := range snap.Recent {
+					<tr>
+						<td>{ fmtTime(t.Ts) }</td>
+						<td>{ t.DeviceID }</td>
+						<td><span class={ "tag", tagClass(t.Verdict) }>{ t.Verdict }</span></td>
+					<td>{ trunc(t.Transcript, 60) }</td>
+					<td>{ trunc(t.Reply, 60) }</td>
+					<td>{ fmt.Sprint(t.STTMs) }/{ fmt.Sprint(t.HermesMs) }ms</td>
+				</tr>
+				}
+			</tbody>
+		</table>
+	}
+	<script>
+		setTimeout(() => location.reload(), 5000);
+	</script>
+}
+
+type verdictRow struct {
+	Name  string
+	Count int
+}
+
+func verdictRows(m map[string]int) []verdictRow {
+	rows := make([]verdictRow, 0, len(m))
+	for k, v := range m {
+		rows = append(rows, verdictRow{k, v})
+	}
+	return rows
+}
+
+func tagClass(v string) string {
+	switch v {
+	case "ok":
+		return "ok"
+	case "silence", "cancelled":
+		return ""
+	default:
+		return "err"
+	}
+}
+
+func fmtDur(d time.Duration) string {
+	d = d.Round(time.Second)
+	h := int(d.Hours())
+	m := int(d.Minutes()) % 60
+	s := int(d.Seconds()) % 60
+	if h > 0 {
+		return fmt.Sprintf("%dh%dm%ds", h, m, s)
+	}
+	if m > 0 {
+		return fmt.Sprintf("%dm%ds", m, s)
+	}
+	return fmt.Sprintf("%ds", s)
+}
+
+func fmtTime(ts int64) string {
+	if ts == 0 {
+		return "-"
+	}
+	return time.Unix(ts, 0).Format("15:04:05")
+}
+
+func trunc(s string, max int) string {
+	if len(s) <= max {
+		return s
+	}
+	return s[:max] + "…"
+}

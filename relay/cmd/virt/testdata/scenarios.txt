@@ -1,0 +1,6 @@
+# Contract scenarios, one per line: name | clip | flags | expect
+# Flags subset of virt CLI (--drop-seq N, --cancel-mid). Reviewable contract.
+short-ok      | short.pcm  |                        | ok
+chunked-ok    | speech.pcm |                        | ok
+gap           | voice.pcm  | --drop-seq 1           | upload_gap
+cancel-mid    | speech.pcm | --cancel-mid           | unknown_upload

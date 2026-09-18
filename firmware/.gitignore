@@ -1,0 +1,15 @@
+build/
+build-linux/
+build-qemu/
+sdkconfig
+sdkconfig.old
+.vscode/
+.idea/
+*.bin
+*.elf
+*.map
+.DS_Store
+__pycache__/
+tests/host/test_all
+managed_components/
+dependencies.lock

@@ -1,0 +1,73 @@
+menu "Voice Node"
+
+    config NODE_WIFI_ENABLED
+        bool "Enable WiFi (disable for QEMU: no radio in emulation)"
+        default y
+
+    config NODE_WIFI_SSID
+        string "WiFi SSID (fallback; prefer NVS provisioning)"
+        default "NodeDev"
+
+    config NODE_WIFI_PASS
+        string "WiFi password (fallback; prefer NVS provisioning)"
+        default ""
+
+    config NODE_MQTT_URI
+        string "MQTT broker URI"
+        default "mqtt://192.168.1.10:1883"
+
+    config NODE_DEVICE_ID
+        string "Device ID (MQTT topic prefix node/<id>/...)"
+        default "node-01"
+
+    config NODE_GATEWAY_URL
+        string "Voice relay base URL (fallback; prefer NVS provisioning)"
+        default "http://192.168.1.10:8081"
+
+    config NODE_TELEMETRY_INTERVAL_S
+        int "Health telemetry interval (seconds)"
+        range 5 3600
+        default 30
+
+    config NODE_AUTO_UPDATE
+        bool "Auto-update from relay firmware manifest (poll each telemetry tick)"
+        default n
+
+    config NODE_PTT_GPIO
+        int "PTT input GPIO (strapping-safe: avoid 0,2,5,12,15)"
+        default 4
+
+    config NODE_PTT_ACTIVE_LOW
+        bool "PTT input active-low"
+        default y
+
+    config NODE_MIC_WS_GPIO
+        int "I2S mic WS GPIO (INMP441; avoid 6-11 SPI flash)"
+        default 25
+
+    config NODE_MIC_SCK_GPIO
+        int "I2S mic SCK GPIO (avoid 6-11 SPI flash)"
+        default 26
+
+    config NODE_MIC_SD_GPIO
+        int "I2S mic SD GPIO (avoid 6-11 SPI flash, 34-39 input-only)"
+        default 32
+
+    config NODE_LED_GPIO
+        int "Status LED GPIO (avoid 6-11 SPI flash)"
+        default 2
+
+    config NODE_OLED_SDA_GPIO
+        int "OLED SDA GPIO (I2C, e.g. 21)"
+        default 21
+
+    config NODE_OLED_SCL_GPIO
+        int "OLED SCL GPIO (I2C, e.g. 22)"
+        default 22
+
+    config NODE_SILENCE_PEAK
+        int "Skip upload if peak amplitude below this (0=never skip)"
+        default 300
+
+
+endmenu

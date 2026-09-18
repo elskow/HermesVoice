@@ -1,0 +1,10 @@
+# Prebuilt Hermes profile: Syntesa gateway (ai.syntesa.net).
+# Copy this directory to ~/.hermes on first setup, then add the API key to
+# ~/.hermes/.env (never in git). See README.md in this folder.
+model:
+  # provider openai-api reads OPENAI_API_KEY + OPENAI_BASE_URL from ~/.hermes/.env.
+  # Do NOT use provider "openai" (native key path) or "custom" (no key wiring).
+  provider: openai-api
+  default: qwen3.8-27b
+  base_url: https://ai.syntesa.net/v1
+  api_mode: chat_completions

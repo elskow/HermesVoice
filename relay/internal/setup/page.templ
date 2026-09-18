@@ -1,0 +1,108 @@
+package setup
+
+import "strings"
+
+templ page(vals map[string]string, msg string, probe map[string]ProbeResult) {
+	<h1>Relay setup</h1>
+	if len(vals) == 0 {
+		<p class="msg err">No relay/.env yet. Copy relay/.env.example, then see docs/setup.md (Keys) for where each key comes from.</p>
+	}
+	if msg != "" {
+		<p class={ "msg", msgClass(msg) }>{ msg }</p>
+	}
+	<form method="POST" action="/setup/save">
+		@hermesGroup(vals, probe)
+		@sttGroup(vals, probe)
+		@infraGroup(vals, probe)
+		<p><button type="submit">Save (restarts relay)</button></p>
+	</form>
+	<script>
+		async function probe(name) {
+			const fd = new FormData();
+			fd.append("provider", name);
+			fd.append("base_url", document.getElementById("f_HERMES_BASE_URL").value);
+			fd.append("api_key", document.getElementById("f_HERMES_API_KEY").value);
+			fd.append("dg_key", document.getElementById("f_STT_DEEPGRAM_API_KEY").value);
+			fd.append("whisper_url", document.getElementById("f_STT_WHISPER_URL").value);
+			const r = await fetch("/setup/probe", {method: "POST", body: fd});
+			const j = await r.json();
+			const el = document.getElementById("dot-" + name);
+			el.className = "dot " + (j.ok ? "ok" : "err");
+			el.title = j.detail;
+		}
+	</script>
+}
+
+func msgClass(msg string) string {
+	if strings.HasPrefix(msg, "saved") {
+		return "ok"
+	}
+	return "err"
+}
+
+templ fieldRow(f Field, vals map[string]string, probe map[string]ProbeResult) {
+	<label>
+		<span class="lbl">{ f.Label }</span>
+		if p, ok := probe[f.Key]; ok {
+			<span id={ "dot-" + f.Key } class={ "dot", dotClass(p) } title={ p.Detail }></span>
+		}
+		if f.Secret {
+			<input type="password" id={ "f_" + f.Key } name={ f.Key } value={ vals[f.Key] } autocomplete="off"/>
+		} else {
+			<input type="text" id={ "f_" + f.Key } name={ f.Key } value={ vals[f.Key] } placeholder={ f.Default }/>
+		}
+		if f.Hint != "" {
+			<span class="hint">{ f.Hint }</span>
+		}
+	</label>
+}
+
+func dotClass(p ProbeResult) string {
+	if p.OK {
+		return "ok"
+	}
+	return "err"
+}
+
+templ hermesGroup(vals map[string]string, probe map[string]ProbeResult) {
+	<fieldset class="tile">
+		<legend>Hermes gateway <button type="button" onclick="probe('hermes')">test</button><span id="dot-hermes"></span></legend>
+		for _, f := range hermesFields() {
+			@fieldRow(f, vals, probe)
+		}
+	</fieldset>
+}
+
+templ sttGroup(vals map[string]string, probe map[string]ProbeResult) {
+	<fieldset class="tile">
+		<legend>Speech-to-text</legend>
+		for _, f := range sttFields() {
+			@fieldRow(f, vals, probe)
+		}
+		<p>
+			<button type="button" onclick="probe('deepgram')">test deepgram</button><span id="dot-deepgram"></span>
+			<button type="button" onclick="probe('whisper')">test whisper</button><span id="dot-whisper"></span>
+		</p>
+	</fieldset>
+}
+
+templ infraGroup(vals map[string]string, probe map[string]ProbeResult) {
+	<fieldset class="tile">
+		<legend>Relay</legend>
+		for _, f := range infraFields() {
+			@fieldRow(f, vals, probe)
+		}
+	</fieldset>
+}
+
+func hermesFields() []Field {
+	return []Field{Fields[0], Fields[1], Fields[2]}
+}
+
+func sttFields() []Field {
+	return []Field{Fields[3], Fields[4], Fields[5], Fields[6], Fields[7], Fields[8]}
+}
+
+func infraFields() []Field {
+	return []Field{Fields[9], Fields[10], Fields[11], Fields[12], Fields[13]}
+}
